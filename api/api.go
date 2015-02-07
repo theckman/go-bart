@@ -2,6 +2,12 @@
 // Use of this source code is governed by the BSD 3-Clause
 // license that can be found in the LICENSE file.
 
+// Package bartapi is for polling and XML decoding the Bay Area Rapid Transit
+// API endpoints. The struct types to decode the XML in to are not provided
+// by bartapi. Consumers of bartapi maintain their own structs.
+//
+// NOTE: This package is meant to be consumed as part of go-bart.
+// If you are looking to interact with the BART API you should use that instead.
 package bartapi
 
 import (
