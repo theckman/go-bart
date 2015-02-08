@@ -32,7 +32,7 @@ func Test(t *testing.T) { TestingT(t) }
 
 type TestSuite struct {
 	srv *httptest.Server
-	url string
+	url bartapi.Endpoint
 	c   *bartapi.Client
 }
 
@@ -41,31 +41,26 @@ var _ = Suite(&TestSuite{})
 func (t *TestSuite) SetUpTest(c *C) {
 	h := &handler{}
 	t.srv = httptest.NewServer(h)
-	t.url = t.srv.URL
-	t.c = bartapi.New("testkey")
+	t.url = bartapi.Endpoint(t.srv.URL)
+	t.c = bartapi.New("testkey", t.url)
 }
 
 func (t *TestSuite) TearDownTest(c *C) {
 	t.srv.Close()
 }
 
-func (t *TestSuite) TestSetBaseURL(c *C) {
-	t.c.SetBaseURL("http://localhost")
-	url := t.c.BaseURL()
-	c.Check(url, Equals, "http://localhost")
-}
-
 func (t *TestSuite) TestKey(c *C) {
 	k := "madness"
-	cl := bartapi.New(k)
+	cl := bartapi.New(k, t.url)
 	c.Check(cl.Key(), Equals, k)
+}
+
+func (t *TestSuite) TestURL(c *C) {
+	c.Check(t.c.URL(), Equals, t.url)
 }
 
 func (t *TestSuite) TestPull(c *C) {
 	c.Assert(t.c.Key(), Equals, "testkey")
-
-	t.c.SetBaseURL(fmt.Sprintf("%v/", t.url))
-	c.Assert(t.c.BaseURL(), Equals, fmt.Sprintf("%v/", t.url))
 
 	resp, err := t.c.Pull("test", nil)
 	c.Assert(err, IsNil)

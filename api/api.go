@@ -25,35 +25,59 @@ import (
 	_ "code.google.com/p/go-charset/data"
 )
 
-const (
-	// PublicAPIKey is the public key provided by BART for unregistered
-	// use of their API. To note, by using this key you automatically
-	// agree to their license agreement.
-	PublicAPIKey = "MW9S-E7SL-26DU-VV8V"
+// Endpoint is a string which contains the
+// URL of a specific BART API endpoint.
+type Endpoint string
 
-	// URL is the base URL for the API endpoint
-	URL = "http://api.bart.gov/api/bsa.aspx"
-)
+// PublicAPIKey is the public key provided by BART for unregistered
+// use of their API. To note, by using this key you automatically
+// agree to their license agreement.
+const PublicAPIKey = "MW9S-E7SL-26DU-VV8V"
+
+// AdvisoryEndpoint is the endpoint for requesting BART Service Advisories.
+//
+// This endpoint handles commands to get any current advisories (delays),
+// any elevator status information, as well as the number of trains active
+// in the system.
+const AdvisoryEndpoint Endpoint = "http://api.bart.gov/api/bsa.aspx"
+
+// EstimatesEndpoint is the endpoint for getting Real-Time estimates for
+// departure times at a given station for specific routes.
+const EstimatesEndpoint Endpoint = "http://api.bart.gov/api/etd.aspx"
+
+// RouteEndpoint is the endpoint for getting information about specific routes.
+// This includes pulling information about a single route, or information
+// on all BART routes.
+const RouteEndpoint Endpoint = "http://api.bart.gov/api/route.aspx"
+
+// ScheduleEndpoint is the endpoint for getting information about schedules,
+// and things BART thinks are related to schedules (like fare).
+//
+// This includes: trip planning based on arrival and departure times, estimated
+// load factor for a given trains, fare calculation, full route schedules,
+// station schedules, and holiday / special schedule notices.
+const ScheduleEndpoint Endpoint = "http://api.bart.gov/api/sched.aspx"
+
+// StationEndpoint is the endpoint for getting station information.
+// This includes a list of all stations, station general information,
+// and inforation about access to and from the station as well as surrounding
+// neighborhood information.
+const StationEndpoint Endpoint = "http://api.bart.gov/api/stn.aspx"
 
 // Client is the BART API client
 type Client struct {
-	key, baseURL string
+	key string
+	url Endpoint
 }
 
 // New returns a new BART API client.
-func New(key string) *Client {
-	return &Client{key: key, baseURL: URL}
+func New(key string, url Endpoint) *Client {
+	return &Client{key: key, url: url}
 }
 
-// SetBaseURL sets the base URL for the API client.
-// "Base" meaning where the query params are passed.
-func (c *Client) SetBaseURL(u string) {
-	c.baseURL = u
-}
-
-// BaseURL returns the base URL of the client.
-func (c *Client) BaseURL() string {
-	return c.baseURL
+// URL returns the endpoint being used by the client.
+func (c *Client) URL() Endpoint {
+	return c.url
 }
 
 // Key returns the API key of the client.
@@ -68,7 +92,7 @@ func (c *Client) Key() string {
 func (c *Client) Pull(cmd string, query map[string]string) ([]byte, error) {
 	var params bytes.Buffer
 
-	params.WriteString(fmt.Sprintf("%v?cmd=%v&key=%v", c.baseURL, cmd, c.key))
+	params.WriteString(fmt.Sprintf("%v?cmd=%v&key=%v", string(c.url), cmd, c.key))
 
 	for k, v := range query {
 		params.WriteString(fmt.Sprintf("&%v=%v", k, v))
